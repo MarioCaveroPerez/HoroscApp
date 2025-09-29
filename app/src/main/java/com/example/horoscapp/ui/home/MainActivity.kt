@@ -12,7 +12,7 @@ import com.example.horoscapp.databinding.ActivityMainBinding
 
 //https://youtu.be/UaR7GSNACsM?t=3186
 
-
+//Forzando un commit para ver el push
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
