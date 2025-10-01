@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 
-class HorosocopeDetailViewModel @Inject constructor(): ViewModel(){
+class HorosocopeDetailViewModel @Inject constructor() : ViewModel() {
 
     private var _state = MutableStateFlow<HoroscopeDetailState>(Loading)
     val state: StateFlow<HoroscopeDetailState> = _state
