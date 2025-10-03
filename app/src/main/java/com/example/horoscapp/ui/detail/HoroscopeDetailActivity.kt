@@ -15,6 +15,8 @@ import androidx.navigation.navArgs
 import com.example.horoscapp.R
 import com.example.horoscapp.databinding.ActivityHoroscopeDetailBinding
 import com.example.horoscapp.databinding.ActivityMainBinding
+import com.example.horoscapp.domain.model.HoroscopeModel
+import com.example.horoscapp.domain.model.HoroscopeModel.*
 import com.example.horoscapp.ui.detail.HoroscopeDetailState.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -28,19 +30,19 @@ class HoroscopeDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         binding = ActivityHoroscopeDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
         initUI()
+        horoscopeDetailViewModel.getHoroscope(args.type)
     }
 
     private fun initUI() {
+        initListener()
         initUIState()
+    }
+
+    private fun initListener() {
+        binding.ivBack.setOnClickListener { onBackPressed() }
     }
 
     private fun initUIState() {
@@ -48,9 +50,9 @@ class HoroscopeDetailActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 horoscopeDetailViewModel.state.collect {
                     when (it) {
-                        is Error -> errorState()
                         Loading -> loadingState()
-                        is Success -> successState()
+                        is Error -> errorState()
+                        is Success -> successState(it)
                     }
                 }
             }
@@ -58,11 +60,34 @@ class HoroscopeDetailActivity : AppCompatActivity() {
     }
 
     private fun loadingState() {
+        binding.progressBar.isVisible = true
     }
 
     private fun errorState() {
+        binding.progressBar.isVisible = false
+
     }
 
-    private fun successState() {
+    private fun successState(state: HoroscopeDetailState.Success) {
+        binding.progressBar.isVisible = false
+        binding.tvTittleDetail.text = state.sign
+        binding.tvBody.text = state.predicction
+
+        val image = when (state.horoscopeModel) {
+            Aries -> R.drawable.detail_aries
+            Taurus -> R.drawable.detail_taurus
+            Gemini -> R.drawable.detail_gemini
+            Cancer -> R.drawable.detail_cancer
+            Leo -> R.drawable.detail_leo
+            Virgo -> R.drawable.detail_virgo
+            Libra -> R.drawable.detail_libra
+            Scorpio -> R.drawable.detail_scorpio
+            Sagittarius -> R.drawable.detail_sagittarius
+            Capricorn -> R.drawable.detail_capricorn
+            Aquarius -> R.drawable.detail_aquarius
+            Pisces -> R.drawable.detail_pisces
+        }
+
+        binding.ivDetail.setImageResource(image)
     }
 }
