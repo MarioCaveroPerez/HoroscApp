@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
@@ -42,16 +43,18 @@ class LuckFragment : Fragment() {
     private fun spinRoulette() {
         val random = Random()
         val degrees = random.nextInt(1440) + 360
-        val animator = ObjectAnimator.ofFloat(binding.ivRoulette, View.ROTATION, 0f, degrees.toFloat())
+        val animator =
+            ObjectAnimator.ofFloat(binding.ivRoulette, View.ROTATION, 0f, degrees.toFloat())
         animator.duration = 2000
         animator.interpolator = DecelerateInterpolator()
         animator.doOnEnd { slidecard() }
         animator.start()
     }
-    private fun slidecard(){
+
+    private fun slidecard() {
         val slideUpAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.slide_up)
 
-        slideUpAnimation.setAnimationListener(object : Animation.AnimationListener{
+        slideUpAnimation.setAnimationListener(object : Animation.AnimationListener {
             override fun onAnimationEnd(animation: Animation?) {
                 growCard()
             }
@@ -68,14 +71,38 @@ class LuckFragment : Fragment() {
     private fun growCard() {
         val growAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.grow)
 
-        growAnimation.setAnimationListener(object : Animation.AnimationListener{
-            override fun onAnimationEnd(animation: Animation?) {}
+        growAnimation.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationEnd(animation: Animation?) {
+                binding.reverse.isVisible = false
+                showPremonitionView()
+            }
 
             override fun onAnimationRepeat(animation: Animation?) {}
 
             override fun onAnimationStart(animation: Animation?) {}
         })
         binding.reverse.startAnimation(growAnimation)
+    }
+
+    private fun showPremonitionView() {
+        val dissapearAnimation = AlphaAnimation(1.0f, 0.0f)
+        dissapearAnimation.duration = 200
+        val appearAnimation = AlphaAnimation(0.0f, 1.0f)
+        appearAnimation.duration = 1000
+
+        dissapearAnimation.setAnimationListener(object : Animation.AnimationListener {
+
+            override fun onAnimationEnd(animation: Animation?) {
+                binding.preview.isVisible = false
+                binding.prediction.isVisible = true
+            }
+
+            override fun onAnimationRepeat(animation: Animation?) {}
+
+            override fun onAnimationStart(animation: Animation?) {}
+        })
+        binding.preview.startAnimation(dissapearAnimation)
+        binding.prediction.startAnimation(appearAnimation)
     }
 
     override fun onCreateView(
