@@ -1,26 +1,26 @@
 package com.example.horoscapp.ui.palmistry
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import com.example.horoscapp.R
-import com.example.horoscapp.databinding.FragmentLuckBinding
 import com.example.horoscapp.databinding.FragmentPalmistryBinding
 import dagger.hilt.android.AndroidEntryPoint
-import java.security.acl.Permission
-import java.util.jar.Manifest
 
 @AndroidEntryPoint
-
 class PalmistryFragment : Fragment() {
 
     companion object {
-        private const val CAMERA_PERMISION = android.Manifest.permission.CAMERA
+        private const val CAMERA_PERMISSION = android.Manifest.permission.CAMERA
     }
 
     private var _binding: FragmentPalmistryBinding? = null
@@ -30,11 +30,11 @@ class PalmistryFragment : Fragment() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-
+            startCamera()
         } else {
             Toast.makeText(
                 requireContext(),
-                "Acepta los permisos para poder disfrutar de una experiencia magica",
+                "Acepta los permisos para poder disfrutar de una experiencia mágica",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -44,16 +44,37 @@ class PalmistryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         if (checkCameraPermission()) {
-
+            startCamera()
         } else {
-            requestPermissionLauncher.launch(CAMERA_PERMISION)
+            requestPermissionLauncher.launch(CAMERA_PERMISSION)
         }
     }
 
-    fun checkCameraPermission(): Boolean {
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
+                }
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                cameraProvider.unbindAll()
+
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview)
+            } catch (e: Exception) {
+                Log.e("MARIO", "Algo petó ${e.message}")
+            }
+        }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    private fun checkCameraPermission(): Boolean {
         return PermissionChecker.checkSelfPermission(
-            requireContext(),
-            CAMERA_PERMISION
+            requireContext(), CAMERA_PERMISSION
         ) == PermissionChecker.PERMISSION_GRANTED
     }
 
@@ -64,4 +85,8 @@ class PalmistryFragment : Fragment() {
         return binding.root
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }
